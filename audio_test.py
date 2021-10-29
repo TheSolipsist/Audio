@@ -9,21 +9,30 @@ def get_sound_data(sec, freq_func, amplitude):
     """Get sound data for wav file
 
     Args:
-        sec ([type]): [description]
-        freq_func ([type]): [description]
+        sec ([int]): [seconds that the sound will last for]
+        freq_func ([function]): [function that takes t as input and returns frequency for that t]
         amplitude ([type]): [description]
 
     Returns:
-        [type]: [description]
+        [np.array]: [description]
     """
     t = np.linspace(0, sec, SAMPLERATE * sec)
-    data = amplitude * np.sin(2 * np.pi * quad(0, t, freq_func))
+    data = np.array(t, dtype=np.int16)
+    for i in range(data.size):
+        data[i] = amplitude * np.sin(2 * np.pi * quad(freq_func, 0, t[i])[0])
     return data
 
-sec = 1
-freq = np.linspace(50, 70, SAMPLERATE * sec)
-amplitude = np.linspace(0, 2000, SAMPLERATE * sec)
+sec = 2
+amplitude = 2000
 t = np.linspace(0, sec, SAMPLERATE * sec)
-data = amplitude * np.sin(2*np.pi * (50 * t + 10050 * t ** 2))
-# data = get_sound_data_constant(sec, 200, amplitude)
-write("example.wav", SAMPLERATE, data.astype(np.int16))
+freq_func = lambda t: (50 + 30*abs(t-sec//2))
+data = get_sound_data(sec, freq_func, amplitude)
+
+sec = 2
+amplitude = 2000
+t = np.linspace(0, sec, SAMPLERATE * sec)
+freq_func = lambda t: (50 - 20*abs(t-sec//2))
+data += get_sound_data(sec, freq_func, amplitude)
+
+data = data // 2
+write("example.wav", SAMPLERATE, data)
